@@ -1,0 +1,28 @@
+version: 2.1
+jobs:
+  build:
+    working_directory: ~/app
+    docker:
+      - image: cimg/base
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Build Docker image
+          command: |
+            TAG=0.1.$CIRCLE_BUILD_NUM
+            #not realy required to log in here. just test it before full build.
+            echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
+            docker build -t $DOCKERHUB_USERNAME/geth-native-tracer .
+      - run:
+          name: Push application Docker image
+          command: |
+            TAG=0.1.$CIRCLE_BUILD_NUM
+            echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
+            docker push $DOCKERHUB_USERNAME/geth-native-tracer:$TAG
+            
+            
